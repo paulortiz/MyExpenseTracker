@@ -6,7 +6,8 @@
 
 import React, { Component } from 'react';
 import Event from 'react-native-simple-events';
-import {AppRegistry, StyleSheet, View, Text, ScrollView, TouchableHighlight, ListView, AsyncStorage} from 'react-native';
+import { SwipeListView } from 'react-native-swipe-list-view';
+import {AppRegistry, StyleSheet, View, Text, ScrollView, TouchableHighlight, ListView, AsyncStorage, TouchableOpacity} from 'react-native';
 
 export default class ExpenseListView extends Component {
     
@@ -74,6 +75,24 @@ export default class ExpenseListView extends Component {
         );
     }
 
+    deleteRow(secId, rowId, rowMap) {
+        const CACHE_NAME = "@expenses-cache"
+        try {
+            var cache = AsyncStorage.getItem(CACHE_NAME, (error, result) => {
+                var temp = []
+                if (result !== null) {
+                    var dump =  JSON.parse(result);
+                    dump.splice(rowId, 1);
+                    temp = dump.slice(0);
+                    this.setState({dataSource: this.state.dataSource.cloneWithRows(dump)})
+                }
+                AsyncStorage.setItem(CACHE_NAME, JSON.stringify(temp));
+            })
+        } catch (err) {
+            console.log("@@@ error getting cache :: " + err)
+        }
+    }
+
     render() {
         var updateData = this.props.updateData;
         if (updateData) {
@@ -81,10 +100,18 @@ export default class ExpenseListView extends Component {
             this.getData()
         }
         return (
-            <ListView
+            <SwipeListView
                 enableEmptySections={true}
                 dataSource={this.state.dataSource}
                 renderRow={this.renderRow.bind(this)}
+                renderHiddenRow={ (data, secId, rowId, rowMap) => (
+                    <View style={styles.rowBack}>
+                        <TouchableOpacity style={[styles.backRightBtn, styles.backRightBtnRight]} onPress={ _ => this.deleteRow(secId, rowId, rowMap) }>
+                            <Text style={styles.backTextWhite}>Delete</Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+                rightOpenValue={-75}
             />
         );
     }
@@ -149,7 +176,76 @@ const styles = StyleSheet.create({
         position: "absolute",
         fontSize: 20,
         color: "#FF0606"
-    }
+    },
+    standalone: {
+		marginTop: 30,
+		marginBottom: 30,
+	},
+	standaloneRowFront: {
+		alignItems: 'center',
+		backgroundColor: '#CCC',
+		justifyContent: 'center',
+		height: 50,
+	},
+	standaloneRowBack: {
+		alignItems: 'center',
+		backgroundColor: '#8BC645',
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		padding: 15
+	},
+	backTextWhite: {
+		color: '#FFF'
+	},
+	rowFront: {
+		alignItems: 'center',
+		backgroundColor: '#CCC',
+		borderBottomColor: 'black',
+		borderBottomWidth: 1,
+		justifyContent: 'center',
+		height: 50,
+	},
+	rowBack: {
+		alignItems: 'center',
+		backgroundColor: '#DDD',
+		flex: 1,
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		paddingLeft: 15,
+	},
+	backRightBtn: {
+		alignItems: 'center',
+		bottom: 0,
+		justifyContent: 'center',
+		position: 'absolute',
+		top: 0,
+		width: 75
+	},
+	backRightBtnLeft: {
+		backgroundColor: 'blue',
+		right: 75
+	},
+	backRightBtnRight: {
+		backgroundColor: 'red',
+		right: 0
+	},
+	controls: {
+		alignItems: 'center',
+		marginBottom: 30
+	},
+	switchContainer: {
+		flexDirection: 'row',
+		justifyContent: 'center',
+		marginBottom: 5
+	},
+	switch: {
+		alignItems: 'center',
+		borderWidth: 1,
+		borderColor: 'black',
+		paddingVertical: 10,
+		width: 100,
+	}
 });
 
 AppRegistry.registerComponent('ExpenseListView', () => ExpenseListView);

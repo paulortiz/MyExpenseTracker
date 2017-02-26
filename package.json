@@ -9,7 +9,8 @@
   "dependencies": {
     "react": "15.4.2",
     "react-native": "0.41.2",
-    "react-native-keyboard-aware-scroll-view": "^0.2.7"
+    "react-native-keyboard-aware-scroll-view": "^0.2.7",
+    "react-native-swipe-list-view": "^0.3.3"
   },
   "devDependencies": {
     "babel-jest": "19.0.0",

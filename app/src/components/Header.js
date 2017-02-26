@@ -15,7 +15,7 @@ export default class Header extends Component {
     }
 
     render() {
-        var menuIcon = require("../../res/menu-icon/menu-icon.png")
+        var menuIcon = require("../../res/icon-menu/icon-menu.png")
         return (
             <View style={styles.wrapper}>
                 <View style={styles.container}>

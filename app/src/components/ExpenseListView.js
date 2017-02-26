@@ -5,45 +5,48 @@
  */
 
 import React, { Component } from 'react';
-import {AppRegistry, StyleSheet, View, Text, ScrollView, TouchableHighlight, ListView} from 'react-native';
+import Event from 'react-native-simple-events';
+import {AppRegistry, StyleSheet, View, Text, ScrollView, TouchableHighlight, ListView, AsyncStorage} from 'react-native';
 
 export default class ExpenseListView extends Component {
-  
+    
+    
     constructor(props) {
        super(props);       
        const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-       var data = [
-           {title: "Lunch with team", time: "12:00 noon", amount: "10.50"},
-           {title: "Taxt Fair", time: "10:30 am", amount: "21.00"},
-           {title: "Taxt Fair", time: "10:30 am", amount: "21.00"},
-           {title: "Taxt Fair", time: "10:30 am", amount: "21.00"},
-           {title: "Taxt Fair", time: "10:30 am", amount: "21.00"},
-           {title: "Taxt Fair", time: "10:30 am", amount: "21.00"},
-           {title: "Taxt Fair", time: "10:30 am", amount: "21.00"},
-           {title: "Taxt Fair", time: "10:30 am", amount: "21.00"},
-           {title: "Taxt Fair", time: "10:30 am", amount: "21.00"},
-           {title: "Taxt Fair", time: "10:30 am", amount: "21.00"},
-           {title: "Taxt Fair", time: "10:30 am", amount: "21.00"},
-           {title: "Taxt Fair", time: "10:30 am", amount: "21.00"},
-           {title: "Taxt Fair", time: "10:30 am", amount: "21.00"},
-           {title: "Taxt Fair", time: "10:30 am", amount: "21.00"}
-       ]
-
        this.state = {
-            dataSource: ds.cloneWithRows(data),
+            dataSource: ds,
         };
+    
     }
 
-    testing() {
-        
+    getData() {
+        const CACHE_NAME = "@expenses-cache"
+        try {
+            var cache = AsyncStorage.getItem(CACHE_NAME, (error, result) => {
+                var temp = []
+                if (result !== null) {
+                    var dump =  JSON.parse(result);
+                    console.log(dump)
+                    this.setState({dataSource: this.state.dataSource.cloneWithRows(dump)})
+                }
+            })
+        } catch (err) {
+            console.log("@@@ error getting cache :: " + err)
+        }
     }
 
     componentWillMount() {
-        console.log("Expense List View will mount...")
+        
+        Event.on('update-expense-list', '', this.handleUpdateList.bind(this))
+    }
+
+    handleUpdateList(data) {        
+        this.setState({dataSource: this.state.dataSource.cloneWithRows(data)})
     }
 
     componentDidMount() {
-        
+        this.getData()
     }
 
     handleAppStateChange() {
@@ -52,16 +55,37 @@ export default class ExpenseListView extends Component {
 
     renderRow(rowData, sectionID, rowID) {
         var data = rowData
+        var date = new Date(data.date)
+        var today = new Date()
+        var time = ""
+        var month = date.getMonth()
+        var day = date.getDay()
+        var year = date.getFullYear()
+        var hour = date.getHours()
+        var min = date.getMinutes()
+
+        if (today.toDateString() == date.toDateString()) {
+            time = hour + ":" + min
+        } else {
+            time = day + "/" + month + "/" + year + " " + hour + ":" + min
+        }
+
         return(
-            <ExpenseView title={data.title} time={data.time} amount={data.amount}/>
+            <ExpenseView title={data.title} time={time} amount={data.amount}/>
         );
     }
 
     render() {
+        var updateData = this.props.updateData;
+        if (updateData) {
+            console.log("update data? " + updateData)
+            this.getData()
+        }
         return (
             <ListView
+                enableEmptySections={true}
                 dataSource={this.state.dataSource}
-                renderRow={this.renderRow}
+                renderRow={this.renderRow.bind(this)}
             />
         );
     }
@@ -122,6 +146,8 @@ const styles = StyleSheet.create({
         color: "#BBBBBB"
     },
     amount: {
+        right: 25,
+        position: "absolute",
         fontSize: 20,
         color: "#FF0606"
     }

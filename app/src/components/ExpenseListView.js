@@ -69,7 +69,6 @@ export default class ExpenseListView extends Component {
         } else {
             time = day + "/" + month + "/" + year + " " + hour + ":" + min
         }
-
         return(
             <ExpenseView title={data.title} time={time} amount={data.amount}/>
         );

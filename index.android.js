@@ -11,6 +11,7 @@ import DataUtil from "./app/src/components/data/DataUtil"
 
 import {
     AppRegistry, 
+    AsyncStorage,
     AppState, 
     StyleSheet, 
     Text, 
@@ -30,6 +31,7 @@ export default class MyExpenseTracker extends Component {
         super(props);
         this.state = {
             addModalVisible: false,
+            updateData: false,
             inputTitle: "",
             inputAmount: ""
         };
@@ -39,10 +41,44 @@ export default class MyExpenseTracker extends Component {
         var date = new Date();
         var title = this.state.inputTitle;
         var amount = this.state.inputAmount;
-        console.log("title: " + title + ", amount: " + amount + ", date: " + date)
-        if (title !== "" && amount !== "") {
-            this.setState({addModalVisible : false})
-        } 
+        const CACHE_NAME = "@expenses-cache"
+        if (title === "" || amount === "") {
+            return
+        }
+
+        // data to be stored
+        var data = {
+            id: this.generateId(),
+            title: title, 
+            amount: amount, 
+            date: date
+        }
+
+        try {
+            var cache = AsyncStorage.getItem(CACHE_NAME, (error, result) => {
+                var temp = []
+                if (result !== null) {
+                    var dump =  JSON.parse(result);
+                    temp = dump.slice(0);
+                }
+                temp.push(data)
+                this.onPressClear()
+                this.setState({updateDate : true})
+                Event.trigger("update-expense-list", temp)
+                AsyncStorage.setItem(CACHE_NAME, JSON.stringify(temp));
+            })
+        } catch (err) {
+            console.log("@@@ error getting cache :: " + err)
+        }
+
+        this.setState({addModalVisible : false})
+    }
+
+    generateId() {
+        var S4 = function() {
+            return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+        };
+        return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
     }
 
     onPressClear() {
@@ -88,7 +124,7 @@ export default class MyExpenseTracker extends Component {
         return (
             <View style={styles.container}>
                 <Header/>
-                <ExpenseListView />
+                <ExpenseListView key={this.state.updateData}/>
                 {/* Add Button*/}
                 <View style={styles.bottomContainer} width={width}>
                     <TouchableNativeFeedback 
@@ -103,6 +139,7 @@ export default class MyExpenseTracker extends Component {
                     transparent={true}
                     visible={this.state.addModalVisible} 
                     onRequestClose={()=>{console.log("closing...")}}>
+
                     <View style={{backgroundColor : 'rgba(0, 0, 0, 0.5)'}} width={width} height={height}>
                         {/* Popup View */}
                         <View style={styles.modalContainer} width={width}>
@@ -140,7 +177,7 @@ export default class MyExpenseTracker extends Component {
                             </View>
                             <Image source={require("./app/res/icon-down-triangle-white/icon-down-triangle-white.png")} />
                         </View>
-
+                        {/* End: Popup View */}
                     </View>
                 </Modal>
             </View>

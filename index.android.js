@@ -7,6 +7,8 @@ import React, { Component } from 'react';
 import Event from 'react-native-simple-events';
 import Header from "./app/src/components/Header"
 import ExpenseListView from "./app/src/components/ExpenseListView"
+import DataUtil from "./app/src/components/data/DataUtil"
+
 import {
     AppRegistry, 
     AppState, 
@@ -27,17 +29,36 @@ export default class MyExpenseTracker extends Component {
     constructor(props) {
         super(props);
         this.state = {
-          addModalVisible: false
+            addModalVisible: false,
+            inputTitle: "",
+            inputAmount: ""
         };
     }
 
     onPressAdd() {
+        var date = new Date();
+        var title = this.state.inputTitle;
+        var amount = this.state.inputAmount;
+        console.log("title: " + title + ", amount: " + amount + ", date: " + date)
+        if (title !== "" && amount !== "") {
+            this.setState({addModalVisible : false})
+        } 
+    }
 
+    onPressClear() {
+        this.setState({inputTitle: ""})
+        this.setState({inputAmount: ""})
+    }
+
+    onUpdateTitle(value) {
+        this.setState({inputTitle: value})
+    }
+
+    onUpdateAmount(value) {
+        this.setState({inputAmount: value})
     }
 
     componentWillMount() {
-        console.log("Component will mount...")
-        console.log("state : " + this.state.addModalVisible)
         Event.on('add-new-item','', this.openAddOrUpdateModal)
     }
 
@@ -47,7 +68,6 @@ export default class MyExpenseTracker extends Component {
 
     componentWillUnmount() { 
         Event.rm('add-new-item', '') 
-        console.log("state : " + this.state.addModalVisible)
     }
 
     componentDidMount() {
@@ -68,8 +88,7 @@ export default class MyExpenseTracker extends Component {
         return (
             <View style={styles.container}>
                 <Header/>
-                <ExpenseListView/>
-
+                <ExpenseListView />
                 {/* Add Button*/}
                 <View style={styles.bottomContainer} width={width}>
                     <TouchableNativeFeedback 
@@ -95,23 +114,31 @@ export default class MyExpenseTracker extends Component {
                                 
                                 {/* Input Containers */}
                                 <View style={styles.inputContainer}>
-                                    <TextInput style={styles.textInput} placeholder="Please enter expense title" />
-                                    <TextInput style={styles.textInput} placeholder="Please enter amount"/>
+                                    <TextInput 
+                                        style={styles.textInput} 
+                                        value={this.state.inputTitle}
+                                        onChangeText={this.onUpdateTitle.bind(this)}
+                                        placeholder="Please enter expense"/>
+
+                                    <TextInput 
+                                        style={styles.textInput} 
+                                        keyboardType="numeric"
+                                        value={this.state.inputAmount}
+                                        onChangeText={this.onUpdateAmount.bind(this)}
+                                        placeholder="Please enter amount"/>
                                 </View>
 
                                 {/* Buttons */}
                                 <View style={styles.modalButtonContainer}>
-                                     <TouchableHighlight onPress={() => {}} underlayColor="#ffffff">
+                                     <TouchableHighlight onPress={this.onPressClear.bind(this)} underlayColor="#ffffff">
                                         <Image source={iconClear} style={{marginRight: 20}}/>
                                     </TouchableHighlight>
-                                    <TouchableHighlight onPress={() => {}} underlayColor="#ffffff">
+                                    <TouchableHighlight onPress={this.onPressAdd.bind(this)} underlayColor="#ffffff">
                                         <Image source={iconAddItem} style={{marginRight: 20}}/>
                                     </TouchableHighlight>
                                 </View>
                             </View>
-                            <View>
-                                <Image source={require("./app/res/icon-down-triangle-white/icon-down-triangle-white.png")} />
-                            </View>
+                            <Image source={require("./app/res/icon-down-triangle-white/icon-down-triangle-white.png")} />
                         </View>
 
                     </View>

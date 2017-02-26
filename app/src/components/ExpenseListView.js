@@ -9,8 +9,8 @@ import {AppRegistry, StyleSheet, View, Text, ScrollView, TouchableHighlight, Lis
 
 export default class ExpenseListView extends Component {
   
-    constructor() {
-       super();
+    constructor(props) {
+       super(props);       
        const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
        var data = [
            {title: "Lunch with team", time: "12:00 noon", amount: "10.50"},
@@ -34,8 +34,12 @@ export default class ExpenseListView extends Component {
         };
     }
 
+    testing() {
+        
+    }
+
     componentWillMount() {
-        console.log("Component will mount...")
+        console.log("Expense List View will mount...")
     }
 
     componentDidMount() {
